@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Certificate of Achievement</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Great+Vibes&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body {
+            min-height: 100%;
+            background: #1a1008;
+            font-family: 'Cormorant Garamond', serif;
+            display: flex; align-items: center; justify-content: center;
+            padding: 1.5rem;
+        }
+
+        /* ── Outer envelope reveal ── */
+        #envelope {
+            position: fixed; inset: 0; z-index: 100;
+            background: #0d0800;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 1.2rem; cursor: pointer;
+            transition: opacity 0.8s ease;
+        }
+        #envelope.open { opacity: 0; pointer-events: none; }
+
+        .env-icon {
+            font-size: 4rem;
+            animation: envFloat 2.5s ease-in-out infinite;
+        }
+        @keyframes envFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+
+        .env-title {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(0.7rem, 3vw, 0.9rem);
+            color: rgba(201,168,76,0.6);
+            letter-spacing: 0.3em; text-transform: uppercase;
+        }
+        .env-sub {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic; font-size: 1rem;
+            color: rgba(255,255,255,0.25);
+        }
+        .env-btn {
+            margin-top: 0.5rem;
+            padding: 10px 28px; border-radius: 40px;
+            background: linear-gradient(135deg, #c9a84c, #9b2335);
+            border: none; color: #fff;
+            font-family: 'Cinzel', serif;
+            font-size: 0.78rem; letter-spacing: 0.15em;
+            cursor: pointer; text-transform: uppercase;
+            box-shadow: 0 4px 20px rgba(201,168,76,0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .env-btn:hover { transform: scale(1.04); box-shadow: 0 6px 28px rgba(201,168,76,0.45); }
+
+        /* ── Page wrapper ── */
+        #certPage {
+            opacity: 0; transition: opacity 1s ease;
+            width: 100%;
+        }
+        #certPage.show { opacity: 1; }
+
+        /* ── Certificate ── */
+        .cert-wrap {
+            max-width: 700px; width: 100%;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* Outer border frame */
+        .cert {
+            background: #fdf8ed;
+            border: 3px solid #8b6914;
+            box-shadow:
+                0 0 0 6px #fdf8ed,
+                0 0 0 9px #8b6914,
+                0 0 0 14px #fdf8ed,
+                0 0 0 16px #b8963a,
+                0 20px 60px rgba(0,0,0,0.6);
+            padding: clamp(1.8rem, 5vw, 3rem) clamp(1.5rem, 5vw, 3rem);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Background watermark pattern */
+        .cert::before {
+            content: '';
+            position: absolute; inset: 0;
+            background-image: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 40px,
+                rgba(139,105,20,0.03) 40px,
+                rgba(139,105,20,0.03) 41px
+            ),
+            repeating-linear-gradient(
+                -45deg,
+                transparent,
+                transparent 40px,
+                rgba(139,105,20,0.03) 40px,
+                rgba(139,105,20,0.03) 41px
+            );
+            pointer-events: none;
+        }
+
+        /* Corner ornaments */
+        .corner {
+            position: absolute;
+            width: 60px; height: 60px;
+            font-size: 1.8rem; line-height: 1;
+            color: #8b6914; opacity: 0.5;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .corner.tl { top: 18px; left: 18px; }
+        .corner.tr { top: 18px; right: 18px; transform: scaleX(-1); }
+        .corner.bl { bottom: 18px; left: 18px; transform: scaleY(-1); }
+        .corner.br { bottom: 18px; right: 18px; transform: scale(-1); }
+
+        /* Top emblem row */
+        .cert-top {
+            display: flex; align-items: center; justify-content: center;
+            gap: 12px; margin-bottom: 0.6rem;
+        }
+        .cert-line-deco {
+            flex: 1; height: 1px;
+            background: linear-gradient(to right, transparent, #b8963a);
+        }
+        .cert-line-deco.right {
+            background: linear-gradient(to left, transparent, #b8963a);
+        }
+        .cert-emblem { font-size: clamp(2rem, 8vw, 3rem); }
+
+        /* Authority text */
+        .cert-authority {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(0.55rem, 1.8vw, 0.72rem);
+            letter-spacing: 0.28em; text-transform: uppercase;
+            color: #8b6914; text-align: center;
+            margin-bottom: 0.3rem;
+        }
+
+        /* Divider */
+        .cert-divider {
+            display: flex; align-items: center; gap: 10px;
+            margin: 0.6rem 0;
+        }
+        .cert-divider-line {
+            flex: 1; height: 1px; background: #c9a84c; opacity: 0.4;
+        }
+        .cert-divider-diamond { color: #c9a84c; font-size: 0.5rem; opacity: 0.6; }
+
+        /* Certificate of Achievement heading */
+        .cert-heading {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(1.3rem, 5vw, 2rem);
+            font-weight: 700;
+            color: #3d2000;
+            text-align: center;
+            letter-spacing: 0.08em;
+            line-height: 1.2;
+            margin-bottom: 0.2rem;
+            text-shadow: 1px 1px 0 rgba(255,255,255,0.8);
+        }
+        .cert-heading-sub {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(0.55rem, 1.8vw, 0.72rem);
+            letter-spacing: 0.22em; text-transform: uppercase;
+            color: #8b6914; text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        /* Certify text */
+        .cert-certify {
+            font-style: italic; font-size: clamp(0.88rem, 2.5vw, 1rem);
+            color: #5a3800; text-align: center;
+            font-weight: 300; letter-spacing: 0.06em;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Recipient name */
+        .cert-name {
+            font-family: 'Great Vibes', cursive;
+            font-size: clamp(3rem, 10vw, 5rem);
+            color: #9b2335;
+            text-align: center;
+            line-height: 1.1;
+            text-shadow: 2px 2px 0 rgba(155,35,53,0.1);
+            margin: 0.3rem 0;
+        }
+
+        /* Course completed */
+        .cert-course-label {
+            font-style: italic; font-size: clamp(0.82rem, 2.2vw, 0.95rem);
+            color: #5a3800; text-align: center; font-weight: 300;
+            margin-bottom: 0.3rem;
+        }
+        .cert-course {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(0.9rem, 3vw, 1.3rem);
+            font-weight: 700;
+            color: #3d2000;
+            text-align: center;
+            letter-spacing: 0.06em;
+            line-height: 1.4;
+            margin-bottom: 0.2rem;
+        }
+        .cert-distinction {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(0.55rem, 1.8vw, 0.72rem);
+            letter-spacing: 0.2em; text-transform: uppercase;
+            color: #8b6914; text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        /* Grades table */
+        .cert-grades {
+            margin: 0.8rem auto 1rem;
+            max-width: 480px; width: 100%;
+            border-collapse: collapse;
+            font-size: clamp(0.72rem, 2vw, 0.82rem);
+        }
+        .cert-grades th {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(0.55rem, 1.5vw, 0.65rem);
+            letter-spacing: 0.14em; text-transform: uppercase;
+            color: #8b6914; padding: 4px 8px;
+            border-bottom: 1px solid rgba(139,105,20,0.3);
+            font-weight: 600;
+        }
+        .cert-grades td {
+            padding: 5px 8px;
+            color: #3d2000;
+            border-bottom: 1px solid rgba(139,105,20,0.12);
+            font-style: italic;
+        }
+        .cert-grades td:last-child {
+            font-family: 'Cinzel', serif;
+            font-style: normal;
+            font-weight: 700;
+            color: #9b2335;
+            text-align: center;
+            font-size: clamp(0.7rem, 1.8vw, 0.8rem);
+        }
+        .cert-grades tr:last-child td { border-bottom: none; }
+
+        /* Gold seal */
+        .cert-seal-row {
+            display: flex; align-items: flex-end; justify-content: space-between;
+            margin-top: 1.2rem; gap: 1rem; flex-wrap: wrap;
+        }
+        .cert-seal {
+            width: clamp(70px, 15vw, 90px);
+            height: clamp(70px, 15vw, 90px);
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #ffe066, #c9a84c 40%, #8b6914 100%);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            box-shadow:
+                0 0 0 3px #8b6914,
+                0 0 0 5px #fdf8ed,
+                0 0 0 7px #c9a84c,
+                0 4px 16px rgba(139,105,20,0.4);
+            position: relative; flex-shrink: 0;
+            animation: sealSpin 20s linear infinite;
+        }
+        @keyframes sealSpin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        .cert-seal-inner {
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            animation: sealSpinReverse 20s linear infinite;
+        }
+        @keyframes sealSpinReverse { from{transform:rotate(0deg)} to{transform:rotate(-360deg)} }
+        .cert-seal-star { font-size: clamp(1.2rem, 4vw, 1.8rem); line-height: 1; }
+        .cert-seal-text {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(0.3rem, 1vw, 0.4rem);
+            letter-spacing: 0.1em; color: #3d2000;
+            text-align: center; line-height: 1.3;
+            font-weight: 700;
+        }
+
+        /* Signature blocks */
+        .cert-sigs {
+            display: flex; flex: 1;
+            gap: clamp(1rem, 4vw, 2.5rem);
+            justify-content: center; flex-wrap: wrap;
+        }
+        .cert-sig {
+            display: flex; flex-direction: column;
+            align-items: center; gap: 2px; min-width: 100px;
+        }
+        .cert-sig-name {
+            font-family: 'Great Vibes', cursive;
+            font-size: clamp(1.3rem, 4vw, 1.8rem);
+            color: #3d2000; line-height: 1;
+        }
+        .cert-sig-line {
+            width: 100%; height: 1px;
+            background: #8b6914; opacity: 0.4;
+            margin: 2px 0;
+        }
+        .cert-sig-label {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(0.45rem, 1.3vw, 0.58rem);
+            letter-spacing: 0.12em; text-transform: uppercase;
+            color: #8b6914; text-align: center;
+        }
+
+        /* Cert ID + date footer */
+        .cert-footer {
+            margin-top: 1rem;
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 0.5rem;
+        }
+        .cert-footer-text {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(0.4rem, 1.2vw, 0.55rem);
+            letter-spacing: 0.1em; color: #b8963a; opacity: 0.6;
+        }
+
+        /* Funny fine print */
+        .cert-fineprint {
+            margin-top: 1rem;
+            background: rgba(139,105,20,0.06);
+            border: 1px solid rgba(139,105,20,0.15);
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-size: clamp(0.62rem, 1.8vw, 0.72rem);
+            color: #8b6914; opacity: 0.7;
+            font-style: italic; text-align: center;
+            line-height: 1.6;
+        }
+
+        /* Confetti */
+        #confetti {
+            position: fixed; inset: 0;
+            pointer-events: none; z-index: 200;
+            display: none;
+        }
+
+        /* Fade in animation */
+        .cert-section {
+            opacity: 0; transform: translateY(8px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .cert-section.show { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+
+<!-- Envelope screen -->
+<div id="envelope" onclick="openCert()">
+    <div class="env-icon">📜</div>
+    <div class="env-title">Official Document Enclosed</div>
+    <div class="env-sub">For: Srushti &nbsp;·&nbsp; Confidential</div>
+    <button class="env-btn">Open Certificate</button>
+</div>
+
+<!-- Confetti canvas -->
+<canvas id="confetti"></canvas>
+
+<!-- Certificate page -->
+<div id="certPage">
+<div class="cert-wrap">
+<div class="cert">
+
+    <!-- Corner ornaments -->
+    <div class="corner tl">❧</div>
+    <div class="corner tr">❧</div>
+    <div class="corner bl">❧</div>
+    <div class="corner br">❧</div>
+
+    <!-- Top emblem -->
+    <div class="cert-section" id="cs1">
+        <div class="cert-top">
+            <div class="cert-line-deco"></div>
+            <div class="cert-emblem">🏛️</div>
+            <div class="cert-line-deco right"></div>
+        </div>
+        <div class="cert-authority">The Supreme Institute of Ranjeet's Heart &nbsp;·&nbsp; Est. 27 March 2025</div>
+        <div class="cert-authority" style="font-size:clamp(0.45rem,1.4vw,0.6rem);opacity:0.6;margin-top:2px;">Kolhapur, Maharashtra &nbsp;·&nbsp; Recognised by the Universe</div>
+    </div>
+
+    <div class="cert-divider cert-section" id="cs2">
+        <div class="cert-divider-line"></div>
+        <div class="cert-divider-diamond">◆</div>
+        <div class="cert-divider-line"></div>
+    </div>
+
+    <!-- Heading -->
+    <div class="cert-section" id="cs3">
+        <div class="cert-heading">Certificate of Achievement</div>
+        <div class="cert-heading-sub">with highest distinction · unanimously awarded</div>
+    </div>
+
+    <div class="cert-divider cert-section" id="cs4">
+        <div class="cert-divider-line"></div>
+        <div class="cert-divider-diamond">◆</div>
+        <div class="cert-divider-line"></div>
+    </div>
+
+    <!-- Certify block -->
+    <div class="cert-section" id="cs5">
+        <div class="cert-certify">This is to certify that</div>
+        <div class="cert-name">Srushti</div>
+        <div class="cert-course-label">has successfully completed the course of</div>
+        <div class="cert-course">Being Ranjeet's Entire World</div>
+        <div class="cert-distinction">✦ &nbsp; With Distinction · Zero Flaws · Full Marks · Permanently Enrolled &nbsp; ✦</div>
+    </div>
+
+    <!-- Grades -->
+    <div class="cert-section" id="cs6">
+        <table class="cert-grades" align="center">
+            <thead>
+                <tr>
+                    <th style="text-align:left">Subject</th>
+                    <th>Grade</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Kindness (Advanced)</td><td>S+</td></tr>
+                <tr><td>Having Objectively Perfect Eyes</td><td>S+</td></tr>
+                <tr><td>That Smile (Honours)</td><td>S+</td></tr>
+                <tr><td>Always Being There — Even at 2am</td><td>S+</td></tr>
+                <tr><td>Wearing Things He Loves Without Being Asked</td><td>S+</td></tr>
+                <tr><td>Choki Choki Delivery (100% Attendance)</td><td>S+</td></tr>
+                <tr><td>Resting Head on Shoulder Like It Was Made For Her</td><td>S+</td></tr>
+                <tr><td>Making Ordinary Days Feel Like Everything</td><td>S+</td></tr>
+                <tr><td>Flaws (Searched Extensively)</td><td>N/A — None Found</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="cert-divider cert-section" id="cs7">
+        <div class="cert-divider-line"></div>
+        <div class="cert-divider-diamond">◆</div>
+        <div class="cert-divider-line"></div>
+    </div>
+
+    <!-- Seal + Signatures -->
+    <div class="cert-seal-row cert-section" id="cs8">
+        <div class="cert-seal">
+            <div class="cert-seal-inner">
+                <div class="cert-seal-star">⭐</div>
+                <div class="cert-seal-text">OFFICIAL<br>GOLD SEAL<br>OF LOVE</div>
+            </div>
+        </div>
+        <div class="cert-sigs">
+            <div class="cert-sig">
+                <div class="cert-sig-name">Ranjeet</div>
+                <div class="cert-sig-line"></div>
+                <div class="cert-sig-label">Issuing Authority<br>Chief Heart Officer</div>
+            </div>
+            <div class="cert-sig">
+                <div class="cert-sig-name">The Universe</div>
+                <div class="cert-sig-line"></div>
+                <div class="cert-sig-label">Witness<br>Always Knew This</div>
+            </div>
+            <div class="cert-sig">
+                <div class="cert-sig-name">The Weeknd</div>
+                <div class="cert-sig-line"></div>
+                <div class="cert-sig-label">Honorary Witness<br>Made This Possible</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="cert-footer cert-section" id="cs9">
+        <div class="cert-footer-text">CERT NO: SRU-RNJ-27032025-∞</div>
+        <div class="cert-footer-text">DATE OF ISSUE: 27 MARCH 2025</div>
+        <div class="cert-footer-text">VALID: FOREVER · NO EXPIRY</div>
+    </div>
+
+    <!-- Fine print -->
+    <div class="cert-fineprint cert-section" id="cs10">
+        * This certificate is non-transferable, non-refundable, and irrevocable. Any attempt to locate flaws in the recipient has been tried (17 times) and failed conclusively. The issuing authority accepts no responsibility for elevated heart rates, inability to stop smiling, or the general overwhelming feeling that she is simply too good. This certificate is recognised in all 195 countries and also on the moon.
+    </div>
+
+</div>
+</div>
+</div>
+
+<script>
+function openCert() {
+    document.getElementById('envelope').classList.add('open');
+    setTimeout(() => {
+        document.getElementById('certPage').classList.add('show');
+        revealSections();
+        setTimeout(launchConfetti, 800);
+    }, 500);
+}
+
+function revealSections() {
+    const sections = document.querySelectorAll('.cert-section');
+    sections.forEach((s, i) => {
+        setTimeout(() => s.classList.add('show'), i * 120);
+    });
+}
+
+// ── Confetti ─────────────────────────────────────────────────
+function launchConfetti() {
+    const canvas = document.getElementById('confetti');
+    canvas.style.display = 'block';
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const ctx = canvas.getContext('2d');
+
+    const COLORS = ['#c9a84c','#9b2335','#ffd700','#f48fb1','#fff','#fb641b','#c2185b'];
+    const pieces = Array.from({length: 120}, () => ({
+        x: Math.random() * canvas.width,
+        y: -20 - Math.random() * 200,
+        w: 6 + Math.random() * 8,
+        h: 3 + Math.random() * 5,
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        speed: 2 + Math.random() * 4,
+        angle: Math.random() * Math.PI * 2,
+        spin: (Math.random() - 0.5) * 0.2,
+        sway: (Math.random() - 0.5) * 1.5,
+        swayAngle: Math.random() * Math.PI * 2,
+    }));
+
+    let frame;
+    let elapsed = 0;
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(p => {
+            p.y += p.speed;
+            p.angle += p.spin;
+            p.swayAngle += 0.03;
+            p.x += Math.sin(p.swayAngle) * p.sway;
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.angle);
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+            ctx.restore();
+        });
+        elapsed++;
+        if (elapsed < 200) {
+            frame = requestAnimationFrame(draw);
+        } else {
+            cancelAnimationFrame(frame);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            canvas.style.display = 'none';
+        }
+    }
+    frame = requestAnimationFrame(draw);
+}
+</script>
+</body>
+</html>
